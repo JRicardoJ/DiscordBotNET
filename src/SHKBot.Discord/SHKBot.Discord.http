@@ -1,0 +1,6 @@
+@SHKBot.Discord_HostAddress = http://localhost:5135
+
+GET {{SHKBot.Discord_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

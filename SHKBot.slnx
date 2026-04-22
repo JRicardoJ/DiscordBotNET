@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SHKBot.Application/SHKBot.Application.csproj" />
+    <Project Path="src/SHKBot.Discord/SHKBot.Discord.csproj" />
+    <Project Path="src/SHKBot.Domain/SHKBot.Domain.csproj" />
+    <Project Path="src/SHKBot.Infrastructure/SHKBot.Infrastructure.csproj" />
+  </Folder>
+</Solution>
