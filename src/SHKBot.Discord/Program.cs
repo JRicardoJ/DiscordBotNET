@@ -1,41 +1,45 @@
+using Discord;
+using Discord.WebSocket;
+using MediatR;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Discord
+builder.Services.AddSingleton<DiscordSocketClient>(sp =>
+{
+    var config = new DiscordSocketConfig
+    {
+        GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+    };
+    return new DiscordSocketClient(config);
+});
+
+// MediatR — scans Application layer for handlers
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(SHKBot.Application.AssemblyReference).Assembly));
+
+// FluentValidation
+builder.Services.AddValidatorsFromAssembly(typeof(SHKBot.Application.AssemblyReference).Assembly);
+
+// Infrastructure
+builder.Services.AddSingleton<ILlmService, OllamaService>();
+builder.Services.AddSingleton<IConversationRepository, InMemoryConversationRepository>();
+
+// Discord event listener
+builder.Services.AddSingleton<DiscordMessageListener>();
+
+// Ollama HttpClient
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// Start Discord connection
+var client = app.Services.GetRequiredService<DiscordSocketClient>();
+var listener = app.Services.GetRequiredService<DiscordMessageListener>();
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+await listener.InitializeAsync();
+await client.LoginAsync(TokenType.Bot, builder.Configuration["Discord:Token"]);
+await client.StartAsync();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

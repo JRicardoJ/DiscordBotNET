@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Discord.Net" Version="3.19.1" />
+    <PackageReference Include="MediatR" Version="14.1.0" />
+  </ItemGroup>
+
 </Project>
